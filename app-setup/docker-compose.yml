@@ -1,0 +1,103 @@
+services:
+  # ----------------------------------------
+  # PostgreSQL Shared (pgvector)
+  # ----------------------------------------
+  db:
+    image: ankane/pgvector:latest
+    container_name: educollege_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: educollege_db
+      POSTGRES_USER: educollege_user
+      POSTGRES_PASSWORD: educollege_Admin_2025
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+    - "5432:5432" 
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U educollege_user -d educollege_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  
+  # ----------------------------------------
+  # MinIO
+  # ----------------------------------------
+  minio:
+    image: quay.io/minio/minio
+    container_name: educollege_minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_API_CORS_ALLOW_ORIGIN: "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3002,http://127.0.0.1:3003,http://127.0.0.1:8080"
+      MINIO_API_CORS_ALLOW_METHODS: "GET,POST,PUT,DELETE,HEAD,OPTIONS"
+      MINIO_API_CORS_ALLOW_HEADERS: "Authorization,Content-Type,X-Tenant-Key,Accept,Accept-Language,Connection,Referer,Sec-Fetch-Dest,Sec-Fetch-Mode,Sec-Fetch-Site,User-Agent,sec-ch-ua,sec-ch-ua-mobile,sec-ch-ua-platform"
+      MINIO_API_CORS_EXPOSE_HEADERS: "ETag,Last-Modified,Content-Length,Content-Type"
+      MINIO_API_CORS_ALLOW_CREDENTIALS: "true"
+    command: server /data --console-address ":9090"
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+    volumes:
+      - minio_data:/data
+    networks:
+      - internal
+
+  
+  
+  # ----------------------------------------
+  # RabbitMQ
+  # ----------------------------------------
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: educollege_rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - internal
+
+  # ----------------------------------------
+  # Redis
+  # ----------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: educollege_redis
+    restart: always
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+
+volumes:
+  postgres_data:
+    driver: local
+    name: educollege_postgres_data
+  minio_data:
+    driver: local
+    name: educollege_minio_data
+  rabbitmq_data:
+    driver: local
+    name: educollege_rabbitmq_data
+  redis_data:
+    driver: local
+    name: educollege_redis_data
+
+networks:
+  internal:
+    driver: bridge
+    name: educollege_internal
