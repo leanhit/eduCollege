@@ -16,29 +16,6 @@
       <!-- Register Form -->
       <form class="mt-8 space-y-6" @submit.prevent="handleRegister">
         <div class="space-y-4">
-          <!-- Username -->
-          <div>
-            <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Tên đăng nhập
-            </label>
-            <div class="mt-1 relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Icon icon="fa6-solid:user" class="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                id="username"
-                v-model="form.username"
-                name="username"
-                type="text"
-                autocomplete="username"
-                required
-                class="appearance-none relative block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.username }"
-                placeholder="Nhập tên đăng nhập"
-              />
-            </div>
-          </div>
-
           <!-- Email -->
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -61,33 +38,6 @@
               />
             </div>
           </div>
-
-          <!-- ID Key -->
-          <div>
-            <label for="idKey" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              ID Key <span class="text-red-500">*</span>
-            </label>
-            <div class="mt-1 relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Icon icon="fa6-solid:key" class="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                id="idKey"
-                v-model="form.idKey"
-                name="idKey"
-                type="text"
-                autocomplete="off"
-                required
-                class="appearance-none relative block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.idKey }"
-                placeholder="STU0001, FAC0001, EMP0001, STA0001"
-              />
-            </div>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              ID Key là bắt buộc. Mỗi ID Key chỉ được sử dụng một lần. Role sẽ được xác định tự động từ prefix.
-            </p>
-          </div>
-
           <!-- Password -->
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -112,17 +62,13 @@
                 <button
                   type="button"
                   @click="showPassword = !showPassword"
-                  class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
+                  class="text-gray-400 hover:text-gray-500 focus:outline-none"
                 >
-                  <Icon 
-                    :icon="showPassword ? 'fa6-solid:eye-slash' : 'fa6-solid:eye'" 
-                    class="h-5 w-5" 
-                  />
+                  <Icon :icon="showPassword ? 'fa6-solid:eye-slash' : 'fa6-solid:eye'" class="h-5 w-5" />
                 </button>
               </div>
             </div>
           </div>
-
           <!-- Confirm Password -->
           <div>
             <label for="confirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -140,19 +86,16 @@
                 autocomplete="new-password"
                 required
                 class="appearance-none relative block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.confirmPassword }"
+                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.confirmPassword || passwordMismatch }"
                 :placeholder="$t('auth.register.confirmPasswordPlaceholder')"
               />
               <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                 <button
                   type="button"
                   @click="showConfirmPassword = !showConfirmPassword"
-                  class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none"
+                  class="text-gray-400 hover:text-gray-500 focus:outline-none"
                 >
-                  <Icon 
-                    :icon="showConfirmPassword ? 'fa6-solid:eye-slash' : 'fa6-solid:eye'" 
-                    class="h-5 w-5" 
-                  />
+                  <Icon :icon="showConfirmPassword ? 'fa6-solid:eye-slash' : 'fa6-solid:eye'" class="h-5 w-5" />
                 </button>
               </div>
             </div>
@@ -253,11 +196,9 @@ export default {
     const authStore = useAuthStore()
     const { t } = useI18n()
     const form = reactive({
-      username: '',
       email: '',
       password: '',
       confirmPassword: '',
-      idKey: '',
       agreeTerms: false
     })
     const showPassword = ref(false)
@@ -274,48 +215,32 @@ export default {
       // Reset error states
       emptyFields.value = false
       authStore.error = null
-      
       // Validate form
-      if (!form.username || !form.email || !form.password || !form.confirmPassword || !form.idKey) {
+      if (!form.email || !form.password || !form.confirmPassword) {
         emptyFields.value = true
         return
       }
-      
       if (!isValidEmail(form.email)) {
-        authStore.error = 'Email không hợp lệ'
+        authStore.error = t('auth.register.invalidEmail')
         return
       }
-      
       if (passwordMismatch.value) {
-        authStore.error = 'Mật khẩu và xác nhận mật khẩu không khớp'
+        authStore.error = t('auth.register.passwordsDoNotMatch')
         return
       }
-      
       if (!form.agreeTerms) {
-        authStore.error = 'Bạn phải đồng ý với điều khoản sử dụng'
+        authStore.error = t('auth.register.mustAgreeTerms')
         return
       }
-      
       // Attempt registration
-      try {
-        const result = await authStore.register({
-          username: form.username,
-          email: form.email,
-          password: form.password,
-          confirmPassword: form.confirmPassword,
-          idKey: form.idKey
-        })
-        
-        if (result.success) {
-          // Show success message with role determined from ID key
-          alert(`Đăng ký thành công!\nID của bạn: ${result.data.idKey}\nVai trò: ${result.data.role}`)
-          // Redirect to login after successful registration
-          router.push('/login')
-        } else {
-          authStore.error = result.message || 'Đăng ký thất bại'
-        }
-      } catch (error) {
-        authStore.error = error.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.'
+      const result = await authStore.register({
+        email: form.email,
+        password: form.password,
+        confirmPassword: form.confirmPassword
+      })
+      if (result.success) {
+        // Registration automatically handles workspace creation and redirect
+        // No manual navigation needed
       }
     }
     return {

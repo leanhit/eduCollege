@@ -11,19 +11,6 @@ const instance = axios.create({
 });
 // Danh sách các API KHÔNG cần đính kèm Tenant ID (Global APIs)
 const EXCLUDED_PATHS = [
-    // EduCollege Auth APIs
-    '/api/v1/auth/login',
-    '/api/v1/auth/register', 
-    '/api/v1/auth/refresh',
-    '/api/v1/auth/logout',
-    '/api/v1/users/register',
-    '/api/v1/users/check-username',
-    '/api/v1/users/check-email',
-    '/api/v1/users/check-id-key',
-    '/api/v1/users/stats',
-    '/api/v1/users/username',
-    
-    // Legacy Auth APIs
     '/auth/login',
     '/auth/register',
     '/auth/refresh-token',

@@ -1,26 +1,14 @@
 <template>
-  <!-- Auth Layout (full screen) -->
-  <div v-if="$route.meta.hideNav" class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <router-view v-slot="{ Component }">
-      <transition
-        name="slide-up"
-        mode="out-in"
-      >
-        <component :is="Component" />
-      </transition>
-    </router-view>
-    <!-- Notification Toast Container -->
-    <NotificationToast />
-  </div>
-  
-  <!-- Main App Layout (with sidebar) -->
-  <div v-else class="flex bg-gray-50 font-lexend dark:bg-gray-900">
+  <!-- App -->
+  <div class="flex bg-gray-50 font-lexend dark:bg-gray-900">
     <div
+      v-if="!$route.meta.hideNav"
       :class="sidebar ? 'block lg:block' : 'hidden lg:hidden'"
       class="lg:flex-auto w-sidebar bg-white dark:bg-gray-800 border-r-2 dark:border-gray-700 lg:z-0 z-20 overflow-auto lg:relative fixed"
     >
         <perfect-scrollbar class="h-screen">
           <Sidebar
+            v-if="!$route.meta.hideNav"
             @sidebarToggle="close"
           />
         </perfect-scrollbar>
@@ -30,6 +18,7 @@
       id="body-scroll"
     >
       <Header
+        v-if="!$route.meta.hideNav"
         :sidebar-open="sidebar"
         @sidebarToggle="toggle"
       />
@@ -41,7 +30,7 @@
           <component :is="Component" />
         </transition>
       </router-view>
-      <Footer />
+      <Footer v-if="!$route.meta.hideNav" />
     </div>
     <!-- Notification Toast Container -->
     <NotificationToast />

@@ -10,7 +10,6 @@ import Dashboard from "../views/Dashboard.vue";
 import Login from "../views/auth/Login.vue";
 import Register from "../views/auth/Register.vue";
 import Profile from "../views/profile/Profile.vue";
-import ProfileNew from "../views/profile/ProfileNew.vue";
 import Tenant from "../views/tenant/gateway/Gateway.vue";
 import Help from "../views/help/Help.vue";
 import TenantOverview from "../views/tenant/overview/TenantOverview.vue";
@@ -57,17 +56,11 @@ const routes = [
     component: Tenant,
     meta: { requiresAuth: true, hideNav: true },
   },
-  // Standalone Profile Routes
+  // Standalone Profile Route
   {
     path: "/profile",
     name: "profile",
     component: Profile,
-    meta: { requiresAuth: true, title: "Profile" + appname, skipTenantCheck: true },
-  },
-  {
-    path: "/profile-new",
-    name: "profile-new",
-    component: ProfileNew,
     meta: { requiresAuth: true, title: "Profile" + appname, skipTenantCheck: true },
   },
   {
@@ -171,11 +164,17 @@ router.beforeEach(async (to, from, next) => {
     }
     return next();
   }
-  // 2. If logged in and trying to access login - redirect to dashboard (EduCollege)
+  // 2. If logged in and trying to access login (giống frontend)
   if (to.name === 'login') {
-    return next({ name: 'dashboard' });
+    return activeTenantId ? next({ name: 'dashboard' }) : next({ name: 'tenant-gateway' });
   }
-  // 3. EduCollege: Skip tenant logic completely
+  // 3. If logged in but no tenant selected (and not on tenant gateway or routes that skip tenant check) (giống frontend)
+  if (to.meta.requiresAuth && !activeTenantId && to.name !== 'tenant-gateway' && !to.meta.skipTenantCheck) {
+    return next({ 
+      name: 'tenant-gateway', 
+      query: { redirect: to.fullPath } 
+    });
+  }
   next();
 });
 export default router;

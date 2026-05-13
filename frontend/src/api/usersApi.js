@@ -4,55 +4,42 @@ import { useAuthStore } from '@/stores/authStore';
 import { getUserIdFromJWT, debugJWT } from '@/utils/jwtHelper';
 export const usersApi = {
     login(params) {
-        return axios.post('/api/v1/auth/login', params);
+        return axios.post('/auth/login', params);
     },
     register(params) {
-        return axios.post('/api/v1/users/register', params);
+        return axios.post('/auth/register', params);
     },
     refreshToken(params) {
-        return axios.post('/api/v1/auth/refresh', params);
+        return axios.post('/auth/refresh-token', params);
     },
     logout() {
-        return axios.post('/api/v1/auth/logout');
-    },
-    // Check availability
-    checkUsername(username) {
-        return axios.get(`/api/v1/users/check-username/${username}`);
-    },
-    checkEmail(email) {
-        return axios.get(`/api/v1/users/check-email/${email}`);
-    },
-    checkIdKey(idKey) {
-        return axios.get(`/api/v1/users/check-id-key/${idKey}`);
-    },
-    // User management
-    getUserStats() {
-        return axios.get('/api/v1/users/stats');
-    },
-    getUserByUsername(username) {
-        return axios.get(`/api/v1/users/username/${username}`);
+        return axios.post('/auth/logout');
     },
     getProfile() {
-        // Use new profile endpoint
-        return axios.get('/api/v1/profiles/me');
+        // Get current user ID from auth store
+        const authStore = useAuthStore();
+        let userId = authStore.userId;
+        // Fallback: get from JWT token
+        if (!userId) {
+            const token = localStorage.getItem('accessToken') || '';
+            debugJWT(token); // Debug JWT content
+            userId = getUserIdFromJWT(token);
+        }
+        return axios.get(`/v1/user-info/me`);
     },
     updateProfile(params) {
-        return axios.put('/api/v1/profiles/me', params);
+        return axios.put(`/v1/user-info/me`, params);
     },
-    // 1. Update Basic Info Only
+    // 1. Update Basic Info Only - Tách biệt không gộp chung
     updateBasicInfo(params) {
-        return axios.put('/api/v1/profiles/me/basic', params);
+        return axios.put(`/v1/user-info/me/basic-info`, params);
     },
-    // 2. Update Academic Info Only
-    updateAcademicInfo(params) {
-        return axios.put('/api/v1/profiles/me/academic', params);
-    },
-    // 3. Update Professional Info Only
+    // 2. Update Professional Info Only - Tách biệt không gộp chung
     updateProfessionalInfo(params) {
-        return axios.put('/api/v1/profiles/me/professional', params);
+        return axios.put(`/v1/user-info/me/professional-info`, params);
     },
     updateAvatar(formData) {
-        return axios.put('/api/v1/profiles/me/avatar', formData, {
+        return axios.put(`/v1/user-info/me/avatar`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },

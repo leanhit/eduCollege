@@ -1,48 +1,186 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.4.3'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'org.springframework.boot' version '3.4.3'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.google.protobuf' version '0.9.4'
 }
 
 group = 'com.educollege'
-version = '0.0.1-SNAPSHOT'
-description = 'EduCollege Backend - Educational Management System'
+version = '1.0.0-SNAPSHOT'
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+ext {
+    set('testcontainersVersion', "1.19.3")
 }
 
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
-	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
-	implementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
-	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
-	implementation 'org.springframework.security:spring-security-crypto'
-	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'org.postgresql:postgresql'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // -------------------------------
+    // Spring Boot Core
+    // -------------------------------
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'    // WebFlux cho reactive, CORS
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis starter (Lettuce included)
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'  // WebSocket
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'  // RabbitMQ
+
+    // -------------------------------
+    // gRPC
+    // -------------------------------
+    implementation 'io.grpc:grpc-netty-shaded:1.58.0'
+    implementation 'io.grpc:grpc-protobuf:1.58.0'
+    implementation 'io.grpc:grpc-stub:1.58.0'
+    implementation 'javax.annotation:javax.annotation-api:1.3.2'
+
+    // -------------------------------
+    // Protocol Buffers
+    // -------------------------------
+    implementation 'com.google.protobuf:protobuf-java:3.24.4'
+
+    // -------------------------------
+    // Database
+    // -------------------------------
+    implementation 'org.postgresql:postgresql:42.7.1'
+    implementation 'com.zaxxer:HikariCP:5.1.0'
+    
+    // H2 Database for Testing
+    testImplementation 'com.h2database:h2:2.2.224'
+
+    // -------------------------------
+    // JWT
+    // -------------------------------
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // -------------------------------
+    // Lombok
+    // -------------------------------
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // -------------------------------
+    // DevTools
+    // -------------------------------
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // -------------------------------
+    // Testing
+    // -------------------------------
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    
+    // Testcontainers for integration testing
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:r2dbc'
+
+    // -------------------------------
+    // MapStruct
+    // -------------------------------
+    implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+
+    // -------------------------------
+    // Swagger / OpenAPI
+    // -------------------------------
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.0'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.9.22'
+
+    // -------------------------------
+    // HATEOAS
+    // -------------------------------
+    implementation 'org.springframework.data:spring-data-commons:3.4.3'
+    implementation 'org.springframework.hateoas:spring-hateoas:2.1.1'
+
+    // -------------------------------
+    // MinIO
+    // -------------------------------
+    implementation 'io.minio:minio:8.5.1'
+
+    // -------------------------------
+    // Apache XML-RPC
+    // -------------------------------
+    implementation 'org.apache.xmlrpc:xmlrpc-client:3.1.3'
+    implementation 'org.apache.xmlrpc:xmlrpc-common:3.1.3'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    enabled = true
+    useJUnitPlatform()
+    systemProperties([
+        'http.nonProxyHosts': 'localhost|127.0.0.1',
+        'https.nonProxyHosts': 'localhost|127.0.0.1',
+        'file.encoding': 'UTF-8',
+        'sun.jnu.encoding': 'UTF-8'
+    ])
+    
+    // Configure test task for multi-database setup
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+    
+    // Set test environment variables
+    environment "SPRING_PROFILES_ACTIVE", "test"
+}
+
+springBoot {
+    mainClass = 'com.educollege.EduCollegeApplication'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += "--enable-preview"
+    options.annotationProcessorGeneratedSourcesDirectory = file("build/generated/sources/annotationProcessor/java/main")
+}
+
+tasks.withType(JavaExec).configureEach {
+    jvmArgs += "--enable-preview"
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.24.4"
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.58.0'
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.plugins {
+                grpc {}
+            }
+            task.builtins {
+                java {}
+            }
+        }
+        all()*.plugins {
+            grpc {}
+        }
+    }
+}
+
+sourceSets {
+    main {
+        proto {
+            srcDir 'src/main/resources/proto'
+        }
+        java {
+            srcDirs 'build/generated/source/proto/main/grpc'
+            srcDirs 'build/generated/source/proto/main/java'
+        }
+    }
 }

@@ -1,0 +1,10 @@
+# Namespace for eduCollege University System
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: educollege
+  labels:
+    name: educollege
+    environment: production
+    application: educollege
+    version: v1.0
