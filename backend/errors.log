@@ -1,0 +1,49 @@
+> Task :clean
+> Task :extractIncludeProto
+> Task :extractProto
+> Task :generateProto NO-SOURCE
+
+> Task :compileJava
+/home/ubuntu/ltanh/eduCollege/backend/src/main/java/com/educollege/auth/service/AuthenticationService.java:305: error: cannot find symbol
+        vietnameseIdService.validateStudentId(request.getVietnameseId());
+                           ^
+  symbol:   method validateStudentId(String)
+  location: variable vietnameseIdService of type VietnameseIdService
+/home/ubuntu/ltanh/eduCollege/backend/src/main/java/com/educollege/auth/service/AuthenticationService.java:412: error: cannot find symbol
+            .toBuilder()
+            ^
+  symbol:   method toBuilder()
+  location: class UserResponse
+/home/ubuntu/ltanh/eduCollege/backend/src/main/java/com/educollege/auth/service/AuthenticationService.java:436: error: cannot find symbol
+            .toBuilder()
+            ^
+  symbol:   method toBuilder()
+  location: class UserResponse
+/home/ubuntu/ltanh/eduCollege/backend/src/main/java/com/educollege/core/config/SecurityConfig.java:151: error: constructor JwtAuthenticationFilter in class JwtAuthenticationFilter cannot be applied to given types;
+        return new JwtAuthenticationFilter(jwtService);
+               ^
+  required: JwtService,UserDetailsService
+  found:    JwtService
+  reason: actual and formal argument lists differ in length
+4 errors
+
+> Task :compileJava FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler error output for details.
+
+* Try:
+> Run with --info option to get more log output.
+> Run with --scan to get full insights.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.9/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 5s
+4 actionable tasks: 4 executed

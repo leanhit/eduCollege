@@ -54,8 +54,7 @@ dependencies {
     implementation 'org.postgresql:postgresql:42.7.1'
     implementation 'com.zaxxer:HikariCP:5.1.0'
     
-    // H2 Database for Testing
-    testImplementation 'com.h2database:h2:2.2.224'
+    runtimeOnly 'com.h2database:h2:2.2.224'
 
     // -------------------------------
     // JWT

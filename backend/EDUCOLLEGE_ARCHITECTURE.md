@@ -22,27 +22,27 @@ Thiết kế hệ thống quản lý đại học eduCollege dựa trên best pr
 └─────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────┐
-│                  Microservices Layer                     │
+│             Modular Monolith Layer (Application)        │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────┐ │
 │  │   Auth      │ │   User      │ │   Academic          │ │
-│  │   Service   │ │   Service   │ │   Service           │ │
+│  │   Module    │ │   Module    │ │   Module            │ │
 │  └─────────────┘ └─────────────┘ └─────────────────────┘ │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────┐ │
 │  │   Tenant    │ │   Course    │ │   Enrollment        │ │
-│  │   Service   │ │   Service   │ │   Service           │ │
+│  │   Module    │ │   Module    │ │   Module            │ │
 │  └─────────────┘ └─────────────┘ └─────────────────────┘ │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────┐ │
-│  │   Schedule  │ │   Grade     │ │   Report            │ │
-│  │   Service   │ │   Service   │ │   Service           │ │
+│  │   Finance   │ │   Grade     │ │   Report            │ │
+│  │   Module    │ │   Module    │ │   Module            │ │
 │  └─────────────┘ └─────────────┘ └─────────────────────┘ │
 └─────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────┐
 │                  Data Layer                               │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────────────┐ │
-│  │   User DB   │ │ Academic DB │ │   Tenant DB         │ │
-│  │ (PostgreSQL)│ │ (PostgreSQL)│ │ (PostgreSQL)        │ │
-│  └─────────────┘ └─────────────┘ └─────────────────────┘ │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │            EduCollege Primary Database            │  │
+│  │                   (PostgreSQL)                    │  │
+│  └───────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────┐
@@ -416,6 +416,68 @@ public class VietnameseIdService {
         // Logic to get next sequence for staff in faculty/department type
         return String.format("%04d", sequenceRepository.getNextStaffSequence(faculty.getId(), departmentType));
     }
+}
+```
+
+### 2.3 Finance & Tuition System
+
+#### Tuition Management
+```java
+@Entity
+@Table(name = "tuition_fees")
+public class TuitionFee {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @ManyToOne
+    @JoinColumn(name = "student_id", nullable = false)
+    private Student student;
+    
+    @ManyToOne
+    @JoinColumn(name = "semester_id", nullable = false)
+    private Semester semester;
+    
+    @Column(name = "total_amount", nullable = false)
+    private BigDecimal totalAmount;
+    
+    @Column(name = "paid_amount")
+    private BigDecimal paidAmount = BigDecimal.ZERO;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentStatus status; // UNPAID, PARTIAL, PAID, OVERDUE
+    
+    @Column(name = "due_date")
+    private LocalDate dueDate;
+}
+
+@Entity
+@Table(name = "payment_transactions")
+public class PaymentTransaction {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @ManyToOne
+    @JoinColumn(name = "tuition_fee_id", nullable = false)
+    private TuitionFee tuitionFee;
+    
+    @Column(nullable = false)
+    private BigDecimal amount;
+    
+    @Column(name = "transaction_date", nullable = false)
+    private LocalDateTime transactionDate;
+    
+    @Column(name = "payment_method")
+    private String paymentMethod; // VNPAY, MOMO, BANK_TRANSFER, CASH
+    
+    @Column(name = "reference_number")
+    private String referenceNumber;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionStatus status; // SUCCESS, FAILED, PENDING
 }
 ```
 
@@ -957,6 +1019,31 @@ CREATE TABLE teachers (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Finance Management
+CREATE TABLE tuition_fees (
+    id BIGSERIAL PRIMARY KEY,
+    student_id BIGINT NOT NULL REFERENCES students(id),
+    semester_id BIGINT NOT NULL REFERENCES semesters(id),
+    total_amount DECIMAL(12,2) NOT NULL,
+    paid_amount DECIMAL(12,2) DEFAULT 0,
+    status VARCHAR(20) NOT NULL DEFAULT 'UNPAID' CHECK (status IN ('UNPAID', 'PARTIAL', 'PAID', 'OVERDUE')),
+    due_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE payment_transactions (
+    id BIGSERIAL PRIMARY KEY,
+    tuition_fee_id BIGINT NOT NULL REFERENCES tuition_fees(id),
+    amount DECIMAL(12,2) NOT NULL,
+    transaction_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    payment_method VARCHAR(50),
+    reference_number VARCHAR(100),
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('SUCCESS', 'FAILED', 'PENDING')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
 ### 5.2 Indexes for Performance
@@ -1200,21 +1287,28 @@ spring:
 - [ ] Add GPA calculation
 - [ ] Create grade reporting
 
-### 7.3 Phase 3: Advanced Features (3-4 weeks)
-**Week 10-11: Schedule Management**
+### 7.3 Phase 3: Finance & Tuition System (3-4 weeks)
+**Week 10-11: Tuition & Payment**
+- [ ] Create TuitionFee and Transaction entities
+- [ ] Integrate payment gateways (VNPay, Momo)
+- [ ] Implement invoice generation
+- [ ] Add tuition calculation logic
+
+### 7.4 Phase 4: Advanced Features (3-4 weeks)
+**Week 12-13: Schedule Management**
 - [ ] Implement schedule system
 - [ ] Add classroom management
 - [ ] Create conflict detection
 - [ ] Add timetable generation
 
-**Week 12-13: Reporting & Analytics**
+**Week 14-15: Reporting & Analytics**
 - [ ] Create academic reports
 - [ ] Implement Vietnamese standard reports
 - [ ] Add student performance analytics
 - [ ] Create faculty workload reports
 
-### 7.4 Phase 4: Integration & Testing (2-3 weeks)
-**Week 14: Integration Testing**
+### 7.5 Phase 5: Integration & Testing (2-3 weeks)
+**Week 16: Integration Testing**
 - [ ] End-to-end testing
 - [ ] Performance testing
 - [ ] Load testing
@@ -1828,7 +1922,7 @@ Architecture này được thiết kế dựa trên best practices từ các tr�
 
 ### 13.1 Strengths
 - **Vietnamese Context**: ID system và validation theo chuẩn Việt Nam
-- **Scalability**: Microservices architecture với tenant-based design
+- **Scalability**: Modular Monolith architecture giúp dễ deploy, bảo trì và đảm bảo toàn vẹn dữ liệu (ACID)
 - **Flexibility**: Support multiple academic levels và institutional types
 - **Integration**: Tận dụng existing eduCollege architecture
 - **Performance**: Caching strategies và database optimization
