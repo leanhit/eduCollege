@@ -186,4 +186,17 @@ public class AdvisingService {
         System.out.println("Advising session cancelled successfully");
         return cancelledSession;
     }
+
+    public AdvisingSession approveStudyPlan(Long id, String notes) {
+        log.info("Approving study plan in session id: {}", id);
+        
+        AdvisingSession session = advisingSessionRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Advising session not found"));
+        
+        session.setStatus(AdvisingSession.AdvisingSessionStatus.COMPLETED);
+        session.setNotes(notes);
+        session.setFollowUpRequired(false);
+        
+        return advisingSessionRepository.save(session);
+    }
 }

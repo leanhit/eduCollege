@@ -1,7 +1,12 @@
 package com.educollege.academic.service;
 
 import com.educollege.academic.model.Semester;
+import com.educollege.academic.model.Enrollment;
 import com.educollege.academic.repository.SemesterRepository;
+import com.educollege.academic.repository.EnrollmentRepository;
+import com.educollege.user.model.Student;
+import com.educollege.user.repository.StudentRepository;
+import com.educollege.core.enums.EnrollmentStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +26,8 @@ import java.util.Optional;
 public class SemesterService {
     
     private final SemesterRepository semesterRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final StudentRepository studentRepository;
     
     public Semester createSemester(Semester semester) {
         System.out.println("Creating semester: " + semester.getCode());
@@ -163,5 +170,69 @@ public class SemesterService {
                semester.getRegistrationEnd() != null &&
                !today.isBefore(semester.getRegistrationStart()) && 
                !today.isAfter(semester.getRegistrationEnd());
+    }
+
+    /**
+     * Close a semester and perform final academic calculations for all students
+     */
+    public void closeSemester(Long id) {
+        log.info("Closing semester with id: {}", id);
+        
+        Semester semester = semesterRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Semester not found"));
+
+        // Get all unique students who had enrollments in this semester
+        List<Long> studentIds = enrollmentRepository.findStudentIdsBySemesterId(id);
+        
+        for (Long studentId : studentIds) {
+            updateStudentAcademicProgress(studentId, id);
+        }
+
+        semester.setIsActive(false);
+        semesterRepository.save(semester);
+        log.info("Semester {} closed successfully", semester.getCode());
+    }
+
+    private void updateStudentAcademicProgress(Long studentId, Long semesterId) {
+        Student student = studentRepository.findById(studentId).orElse(null);
+        if (student == null) return;
+
+        List<Enrollment> semesterEnrollments = enrollmentRepository.findByStudentIdAndSemesterId(studentId, semesterId);
+        
+        // Calculate Semester GPA
+        double weightedGpaSum = 0;
+        int semesterCredits = 0;
+        int earnedCredits = 0;
+
+        for (Enrollment e : semesterEnrollments) {
+            int credits = e.getCourseOffering().getCourse().getCredits();
+            if (e.getGpaPoints() != null) {
+                weightedGpaSum += e.getGpaPoints() * credits;
+                semesterCredits += credits;
+                if (e.getStatus() == EnrollmentStatus.COMPLETED) {
+                    earnedCredits += credits;
+                }
+            }
+        }
+
+        if (semesterCredits > 0) {
+            double semesterGpa = weightedGpaSum / semesterCredits;
+            log.info("Student {} - Semester GPA: {}", student.getStudentNumber(), semesterGpa);
+            
+            // Update Cumulative Stats
+            int currentCompleted = student.getCompletedCredits() != null ? student.getCompletedCredits() : 0;
+            int currentTotal = student.getTotalCredits() != null ? student.getTotalCredits() : 0;
+            double currentCumulativeGpa = student.getCumulativeGpa() != null ? student.getCumulativeGpa() : 0;
+
+            int newTotal = currentTotal + semesterCredits;
+            double newCumulativeGpa = ((currentCumulativeGpa * currentTotal) + (semesterGpa * semesterCredits)) / newTotal;
+
+            student.setCompletedCredits(currentCompleted + earnedCredits);
+            student.setTotalCredits(newTotal);
+            student.setCumulativeGpa(Math.round(newCumulativeGpa * 100.0) / 100.0);
+            student.setCurrentGpa(Math.round(semesterGpa * 100.0) / 100.0);
+            
+            studentRepository.save(student);
+        }
     }
 }

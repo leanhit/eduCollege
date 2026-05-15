@@ -2,18 +2,17 @@ package com.educollege.academic.service;
 
 import com.educollege.academic.model.CourseOffering;
 import com.educollege.academic.model.Enrollment;
-import com.educollege.academic.model.Semester;
 import com.educollege.academic.repository.EnrollmentRepository;
 import com.educollege.academic.repository.CourseOfferingRepository;
 import com.educollege.user.model.Student;
 import com.educollege.user.repository.StudentRepository;
 import com.educollege.core.enums.EnrollmentStatus;
+import com.educollege.finance.service.TuitionFeeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +30,7 @@ public class EnrollmentService {
     private final StudentRepository studentRepository;
     private final CourseOfferingRepository courseOfferingRepository;
     private final VietnameseAcademicValidationService validationService;
+    private final TuitionFeeService tuitionFeeService;
     
     public Enrollment enrollStudent(Long studentId, Long courseOfferingId) {
         System.out.println("Enrolling student " + studentId + " in course offering " + courseOfferingId);
@@ -44,8 +44,6 @@ public class EnrollmentService {
         // Validate enrollment
         validationService.validateAcademicStanding(student);
         validationService.validateEnrollmentCapacity(courseOffering.getCurrentStudents(), courseOffering.getMaxStudents());
-        validationService.validatePrerequisites(student, courseOffering.getCourse().getCode(), 
-            courseOffering.getCourse().getPrerequisites());
         validationService.validateScheduleConflict(student, courseOffering.getSchedule());
         
         // Check if already enrolled
@@ -67,6 +65,17 @@ public class EnrollmentService {
         
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
         System.out.println("Student enrolled successfully");
+
+        // Automatically trigger tuition calculation for this semester
+        try {
+            tuitionFeeService.calculateAndCreateTuition(studentId, courseOffering.getSemester().getId());
+            log.info("Automatic tuition calculation triggered for student {} in semester {}", studentId, courseOffering.getSemester().getId());
+        } catch (Exception e) {
+            log.error("Failed to automatically calculate tuition: {}", e.getMessage());
+            // We don't fail the enrollment if tuition calculation fails, 
+            // but we log it for admin review
+        }
+
         return savedEnrollment;
     }
     

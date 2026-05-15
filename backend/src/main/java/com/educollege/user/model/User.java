@@ -1,6 +1,11 @@
 package com.educollege.user.model;
 
+import com.educollege.academic.model.ClassGroup;
+import com.educollege.academic.model.Department;
+import com.educollege.academic.model.Faculty;
+import com.educollege.core.enums.AcademicLevel;
 import com.educollege.core.enums.Role;
+import com.educollege.core.enums.StudentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,6 +37,41 @@ public class User implements UserDetails {
 
     @Column(unique = true, nullable = false)
     private String email;
+
+    // Vietnamese ID System
+    @Column(name = "vietnamese_id", unique = true, nullable = false, length = 20)
+    private String vietnameseId; // "SV24CNTT00101"
+
+    @Column(name = "id_category", nullable = false, length = 20)
+    private String idCategory; // "SINHVIEN", "GIAOVIEN", "NHANVIEN"
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "academic_level", length = 20)
+    private AcademicLevel academicLevel; // "DAIHOC", "THACSI", "TIENSI"
+
+    // Tenant Relationships
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "faculty_id", nullable = false)
+    private Faculty faculty;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id")
+    private ClassGroup classGroup;
+
+    // Academic Info
+    @Column(name = "enrollment_year")
+    private Integer enrollmentYear;
+
+    @Column(name = "graduation_year")
+    private Integer graduationYear;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "student_status")
+    private StudentStatus studentStatus; // ENROLLED, GRADUATED, DROPPED
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

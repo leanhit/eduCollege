@@ -11,6 +11,8 @@ import com.educollege.academic.repository.ClassGroupRepository;
 import com.educollege.core.enums.StudentStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.educollege.user.repository.StudentSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -382,5 +384,19 @@ public class StudentService {
         Student updatedStudent = studentRepository.save(student);
         System.out.println("Credits updated successfully");
         return updatedStudent;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Student> searchStudents(Long facultyId, Long classGroupId, Integer year, String status, String keyword) {
+        log.info("Searching students with facultyId={}, classGroupId={}, year={}, status={}, keyword={}", 
+                 facultyId, classGroupId, year, status, keyword);
+
+        Specification<Student> spec = Specification.where(StudentSpecification.hasFacultyId(facultyId))
+                .and(StudentSpecification.hasClassGroupId(classGroupId))
+                .and(StudentSpecification.hasEnrollmentYear(year))
+                .and(StudentSpecification.hasStatus(status))
+                .and(StudentSpecification.searchByNameOrCode(keyword));
+
+        return studentRepository.findAll(spec);
     }
 }

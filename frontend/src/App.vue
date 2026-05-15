@@ -1,96 +1,87 @@
 <template>
-  <!-- App -->
-  <div class="flex bg-gray-50 font-lexend dark:bg-gray-900">
+  <div class="flex bg-gray-50 font-lexend dark:bg-gray-900 min-h-screen">
+    <!-- Sidebar Container -->
     <div
-      v-if="!$route.meta.hideNav"
-      :class="sidebar ? 'block lg:block' : 'hidden lg:hidden'"
-      class="lg:flex-auto w-sidebar bg-white dark:bg-gray-800 border-r-2 dark:border-gray-700 lg:z-0 z-20 overflow-auto lg:relative fixed"
+      v-if="!hideNav"
+      :class="sidebarOpen ? 'block lg:block' : 'hidden lg:hidden'"
+      class="lg:flex-none w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 lg:z-0 z-20 overflow-auto lg:relative fixed h-screen"
     >
-        <perfect-scrollbar class="h-screen">
-          <Sidebar
-            v-if="!$route.meta.hideNav"
-            @sidebarToggle="close"
-          />
-        </perfect-scrollbar>
+      <perfect-scrollbar class="h-full">
+        <Sidebar @sidebarToggle="sidebarOpen = false" />
+      </perfect-scrollbar>
     </div>
+
+    <!-- Main Content Area -->
     <div
-      class="flex-auto w-full overflow-auto h-screen transition-colors"
+      class="flex-auto w-full overflow-auto h-screen transition-colors flex flex-col"
       id="body-scroll"
     >
       <Header
-        v-if="!$route.meta.hideNav"
-        :sidebar-open="sidebar"
-        @sidebarToggle="toggle"
+        v-if="!hideNav"
+        :sidebar-open="sidebarOpen"
+        @sidebarToggle="sidebarOpen = !sidebarOpen"
       />
-      <router-view v-slot="{ Component }">
-        <transition
-          name="slide-up"
-          mode="out-in"
-        >
-          <component :is="Component" />
-        </transition>
-      </router-view>
-      <Footer v-if="!$route.meta.hideNav" />
+      
+      <main class="flex-grow">
+        <router-view v-slot="{ Component }">
+          <transition name="slide-up" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
+      </main>
+
+      <Footer v-if="!hideNav" />
     </div>
-    <!-- Notification Toast Container -->
+
+    <!-- Global Components -->
     <NotificationToast />
   </div>
-  <!-- End app -->
 </template>
-<script>
-  // Vue components
-  import Sidebar from "@/components/Sidebar";
-  import Header from "@/components/Header";
-  import Footer from "@/components/Footer";
-  import NotificationToast from "@/components/common/NotificationToast";
-  // npm-js
-  import Scrollbar from "smooth-scrollbar";
-  import { useAuthStore } from '@/stores/authStore';
-  import { ACTIVE_TENANT_ID } from '@/utils/constant';
-  export default {
-    name: "App",
-    data() {
-      return {
-        sidebarDark: false,
-        sidebar: true, // Default to visible on desktop
-      };
-    },
-    components: {
-      Header,
-      Footer,
-      Sidebar,
-      NotificationToast
-    },
-    methods: {
-      open() {
-        this.sidebar = true;
-      },
-      close() {
-        this.sidebar = false;
-      },
-      toggle() {
-        this.sidebar = !this.sidebar;
-      },
-    },
-    mounted() {
-      Scrollbar.init(document.querySelector("#body-scroll"));
-    },
-  };
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import Sidebar from "@/components/Sidebar"
+import Header from "@/components/Header"
+import Footer from "@/components/Footer"
+import NotificationToast from "@/components/common/NotificationToast"
+import Scrollbar from "smooth-scrollbar"
+
+const route = useRoute()
+const sidebarOpen = ref(true)
+
+// Computed property to determine if navigation should be hidden
+// This ensures reactivity when the route changes
+const hideNav = computed(() => {
+  return route.meta && route.meta.hideNav === true
+})
+
+onMounted(() => {
+  const scrollElement = document.querySelector("#body-scroll")
+  if (scrollElement) {
+    Scrollbar.init(scrollElement)
+  }
+})
 </script>
+
 <style>
-  /*
-  Enter and leave animations can use different
-  durations and timing functions.
-*/
-  .slide-up-enter-active {
-    transition: all 0.3s ease-out;
-  }
-  .slide-up-leave-active {
-    transition: all 0.8s cubic-bezier(1, 0.5, 0.8, 1);
-  }
-  .slide-up-enter-from,
-  .slide-up-leave-to {
-    transform: translateY(20px);
-    opacity: 0;
-  }
+.slide-up-enter-active {
+  transition: all 0.3s ease-out;
+}
+.slide-up-leave-active {
+  transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+}
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(10px);
+  opacity: 0;
+}
+
+/* Custom scrollbar for dark mode */
+.dark .ps__rail-y {
+  background-color: transparent !important;
+}
+.dark .ps__thumb-y {
+  background-color: #4b5563 !important;
+}
 </style>

@@ -4,6 +4,7 @@ import com.educollege.academic.model.Department;
 import com.educollege.academic.service.DepartmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,18 +20,21 @@ public class DepartmentController {
     private final DepartmentService departmentService;
     
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Department> createDepartment(@RequestBody Department department) {
         Department createdDepartment = departmentService.createDepartment(department);
         return ResponseEntity.ok(createdDepartment);
     }
     
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Department> updateDepartment(@PathVariable Long id, @RequestBody Department department) {
         Department updatedDepartment = departmentService.updateDepartment(id, department);
         return ResponseEntity.ok(updatedDepartment);
     }
     
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteDepartment(@PathVariable Long id) {
         departmentService.deleteDepartment(id);
         return ResponseEntity.noContent().build();

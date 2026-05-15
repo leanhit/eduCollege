@@ -13,9 +13,60 @@
           {{ $t('auth.register.subtitle') }}
         </p>
       </div>
+
+      <!-- Registration Type Tabs -->
+      <div class="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+        <button
+          type="button"
+          @click="registrationType = 'student'"
+          :class="[
+            'flex-1 py-2 px-4 text-center text-sm font-medium',
+            registrationType === 'student'
+              ? 'border-b-2 border-green-500 text-green-600 dark:text-green-400'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+          ]"
+        >
+          Student Registration
+        </button>
+        <button
+          type="button"
+          @click="registrationType = 'teacher'"
+          :class="[
+            'flex-1 py-2 px-4 text-center text-sm font-medium',
+            registrationType === 'teacher'
+              ? 'border-b-2 border-green-500 text-green-600 dark:text-green-400'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+          ]"
+        >
+          Teacher Registration
+        </button>
+      </div>
       <!-- Register Form -->
       <form class="mt-8 space-y-6" @submit.prevent="handleRegister">
         <div class="space-y-4">
+          <!-- Username -->
+          <div>
+            <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Username
+            </label>
+            <div class="mt-1 relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Icon icon="fa6-solid:user" class="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                id="username"
+                v-model="form.username"
+                name="username"
+                type="text"
+                autocomplete="username"
+                required
+                class="appearance-none relative block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.username }"
+                placeholder="Enter username"
+              />
+            </div>
+          </div>
+
           <!-- Email -->
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -100,6 +151,142 @@
               </div>
             </div>
           </div>
+          <!-- Student Specific Fields -->
+          <div v-if="registrationType === 'student'" class="space-y-4">
+            <div>
+              <label for="facultyId" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Faculty ID
+              </label>
+              <input
+                id="facultyId"
+                v-model="form.facultyId"
+                name="facultyId"
+                type="number"
+                required
+                class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.facultyId }"
+                placeholder="Enter faculty ID"
+              />
+            </div>
+            <div>
+              <label for="classGroupId" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Class Group ID
+              </label>
+              <input
+                id="classGroupId"
+                v-model="form.classGroupId"
+                name="classGroupId"
+                type="number"
+                required
+                class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.classGroupId }"
+                placeholder="Enter class group ID"
+              />
+            </div>
+            <div>
+              <label for="enrollmentYear" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Enrollment Year
+              </label>
+              <input
+                id="enrollmentYear"
+                v-model="form.enrollmentYear"
+                name="enrollmentYear"
+                type="number"
+                required
+                class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.enrollmentYear }"
+                placeholder="2024"
+              />
+            </div>
+            <div>
+              <label for="academicLevel" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Academic Level
+              </label>
+              <select
+                id="academicLevel"
+                v-model="form.academicLevel"
+                name="academicLevel"
+                required
+                class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.academicLevel }"
+              >
+                <option value="">Select academic level</option>
+                <option value="DAIHOC">Đại học (Bachelor)</option>
+                <option value="CAODANG">Cao đẳng (College)</option>
+                <option value="THACSI">Thạc sĩ (Master)</option>
+                <option value="TIENSI">Tiến sĩ (PhD)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Teacher Specific Fields -->
+          <div v-if="registrationType === 'teacher'" class="space-y-4">
+            <div>
+              <label for="facultyId" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Faculty ID
+              </label>
+              <input
+                id="facultyId"
+                v-model="form.facultyId"
+                name="facultyId"
+                type="number"
+                required
+                class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.facultyId }"
+                placeholder="Enter faculty ID"
+              />
+            </div>
+            <div>
+              <label for="departmentId" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Department ID
+              </label>
+              <input
+                id="departmentId"
+                v-model="form.departmentId"
+                name="departmentId"
+                type="number"
+                required
+                class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.departmentId }"
+                placeholder="Enter department ID"
+              />
+            </div>
+            <div>
+              <label for="academicTitle" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Academic Title
+              </label>
+              <select
+                id="academicTitle"
+                v-model="form.academicTitle"
+                name="academicTitle"
+                required
+                class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.academicTitle }"
+              >
+                <option value="">Select academic title</option>
+                <option value="GIANGVIEN">Giảng viên (Lecturer)</option>
+                <option value="GIANGVIENCHINH">Giảng viên chính (Senior Lecturer)</option>
+                <option value="PHOGIAOCHU">Phó giáo sư (Associate Professor)</option>
+                <option value="GIAOCHU">Giáo sư (Professor)</option>
+              </select>
+            </div>
+            <div>
+              <label for="specialization" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Specialization
+              </label>
+              <input
+                id="specialization"
+                v-model="form.specialization"
+                name="specialization"
+                type="text"
+                required
+                class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.specialization }"
+                placeholder="Enter specialization"
+              />
+            </div>
+          </div>
+
           <!-- Terms & Conditions -->
           <div class="flex items-center">
             <input
@@ -196,11 +383,20 @@ export default {
     const authStore = useAuthStore()
     const { t } = useI18n()
     const form = reactive({
+      username: '',
       email: '',
       password: '',
       confirmPassword: '',
+      facultyId: '',
+      classGroupId: '',
+      enrollmentYear: '',
+      academicLevel: '',
+      departmentId: '',
+      academicTitle: '',
+      specialization: '',
       agreeTerms: false
     })
+    const registrationType = ref('student')
     const showPassword = ref(false)
     const showConfirmPassword = ref(false)
     const emptyFields = ref(false)
@@ -212,11 +408,9 @@ export default {
       return regex.test(email)
     }
     const handleRegister = async () => {
-      // Reset error states
       emptyFields.value = false
       authStore.error = null
-      // Validate form
-      if (!form.email || !form.password || !form.confirmPassword) {
+      if (!form.username || !form.email || !form.password || !form.confirmPassword) {
         emptyFields.value = true
         return
       }
@@ -232,19 +426,28 @@ export default {
         authStore.error = t('auth.register.mustAgreeTerms')
         return
       }
-      // Attempt registration
-      const result = await authStore.register({
+      const userData = {
+        username: form.username,
         email: form.email,
         password: form.password,
         confirmPassword: form.confirmPassword
-      })
-      if (result.success) {
-        // Registration automatically handles workspace creation and redirect
-        // No manual navigation needed
       }
+      if (registrationType.value === 'student') {
+        userData.facultyId = Number(form.facultyId)
+        userData.classGroupId = Number(form.classGroupId)
+        userData.enrollmentYear = Number(form.enrollmentYear)
+        userData.academicLevel = form.academicLevel
+      } else {
+        userData.facultyId = Number(form.facultyId)
+        userData.departmentId = Number(form.departmentId)
+        userData.academicTitle = form.academicTitle
+        userData.specialization = form.specialization
+      }
+      const result = await authStore.register(userData)
     }
     return {
       form,
+      registrationType,
       showPassword,
       showConfirmPassword,
       passwordMismatch,

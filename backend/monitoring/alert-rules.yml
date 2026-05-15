@@ -175,15 +175,15 @@ groups:
           summary: "Low user activity detected"
           description: "User activity rate is {{ $value }} requests/second"
 
-      - alert: HighChatbotUsage
-        expr: rate(http_requests_total{uri=~"/api/chat.*"}[5m]) > 10
+      - alert: HighAcademicAPIUsage
+        expr: rate(http_requests_total{uri=~"/api/academic.*"}[5m]) > 10
         for: 5m
         labels:
           severity: info
           service: business
         annotations:
-          summary: "High chatbot usage detected"
-          description: "Chatbot usage rate is {{ $value }} requests/second"
+          summary: "High academic API usage detected"
+          description: "Academic API usage rate is {{ $value }} requests/second"
 
       - alert: PaymentProcessingFailure
         expr: rate(http_requests_total{uri="/api/payment",status=~"5.."}[5m]) > 0.05

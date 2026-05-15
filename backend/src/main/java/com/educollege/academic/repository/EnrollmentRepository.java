@@ -90,5 +90,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     
     long countByStatus(EnrollmentStatus status);
     
+    @Query("SELECT DISTINCT e.student.id FROM Enrollment e WHERE e.courseOffering.semester.id = :semesterId")
+    List<Long> findStudentIdsBySemesterId(@Param("semesterId") Long semesterId);
+
     long countByStudentIdAndStatus(Long studentId, EnrollmentStatus status);
 }

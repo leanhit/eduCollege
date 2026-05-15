@@ -5,6 +5,7 @@ import com.educollege.academic.model.Faculty;
 import com.educollege.academic.model.ClassGroup;
 import com.educollege.core.enums.StudentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,7 +17,7 @@ import java.util.Optional;
  * Student Repository
  */
 @Repository
-public interface StudentRepository extends JpaRepository<Student, Long> {
+public interface StudentRepository extends JpaRepository<Student, Long>, JpaSpecificationExecutor<Student> {
     
     Optional<Student> findByStudentNumber(String studentNumber);
     

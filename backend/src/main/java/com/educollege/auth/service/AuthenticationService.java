@@ -80,6 +80,14 @@ public class AuthenticationService {
             .username(request.getUsername())
             .password(passwordEncoder.encode(request.getPassword()))
             .email(request.getEmail())
+            .vietnameseId(vietnameseId)
+            .idCategory("SINHVIEN")
+            .academicLevel(com.educollege.core.enums.AcademicLevel.valueOf(request.getAcademicLevel()))
+            .faculty(faculty)
+            .classGroup(classGroup)
+            .enrollmentYear(request.getEnrollmentYear())
+            .graduationYear(request.getEnrollmentYear() + 4)
+            .studentStatus(com.educollege.core.enums.StudentStatus.ENROLLED)
             .role(Role.STUDENT)
             .build();
         user = userRepository.save(user);
@@ -150,6 +158,10 @@ public class AuthenticationService {
             .username(request.getUsername())
             .password(passwordEncoder.encode(request.getPassword()))
             .email(request.getEmail())
+            .vietnameseId(vietnameseId)
+            .idCategory("GIAOVIEN")
+            .faculty(faculty)
+            .department(department)
             .role(Role.TEACHER)
             .build();
         user = userRepository.save(user);

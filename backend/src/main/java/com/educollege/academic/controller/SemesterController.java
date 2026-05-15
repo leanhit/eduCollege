@@ -4,6 +4,7 @@ import com.educollege.academic.model.Semester;
 import com.educollege.academic.service.SemesterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,18 +20,21 @@ public class SemesterController {
     private final SemesterService semesterService;
     
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Semester> createSemester(@RequestBody Semester semester) {
         Semester createdSemester = semesterService.createSemester(semester);
         return ResponseEntity.ok(createdSemester);
     }
     
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Semester> updateSemester(@PathVariable Long id, @RequestBody Semester semester) {
         Semester updatedSemester = semesterService.updateSemester(id, semester);
         return ResponseEntity.ok(updatedSemester);
     }
     
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteSemester(@PathVariable Long id) {
         semesterService.deleteSemester(id);
         return ResponseEntity.noContent().build();
@@ -121,5 +125,15 @@ public class SemesterController {
     public ResponseEntity<Boolean> isRegistrationOpen(@PathVariable Long id) {
         Boolean isOpen = semesterService.isRegistrationOpen(id);
         return ResponseEntity.ok(isOpen);
+    }
+
+    /**
+     * Close a semester and update academic progress for all students
+     */
+    @PostMapping("/{id}/close")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> closeSemester(@PathVariable Long id) {
+        semesterService.closeSemester(id);
+        return ResponseEntity.ok().build();
     }
 }

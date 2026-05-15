@@ -1,13 +1,13 @@
 package com.educollege.academic.service;
 
 import com.educollege.academic.model.Course;
-import com.educollege.academic.model.Faculty;
 import com.educollege.academic.model.Department;
 import com.educollege.academic.repository.CourseRepository;
-import com.educollege.academic.repository.FacultyRepository;
 import com.educollege.academic.repository.DepartmentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.educollege.academic.repository.CourseSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,24 +24,16 @@ import java.util.Optional;
 public class CourseService {
     
     private final CourseRepository courseRepository;
-    private final FacultyRepository facultyRepository;
     private final DepartmentRepository departmentRepository;
     
     public Course createCourse(Course course) {
         System.out.println("Creating course: " + course.getCode());
         
-        // Validate faculty exists
-        Faculty faculty = facultyRepository.findById(course.getFaculty().getId())
-            .orElseThrow(() -> new RuntimeException("Faculty not found with id: " + course.getFaculty().getId()));
+        // Validate department exists
+        Department department = departmentRepository.findById(course.getDepartment().getId())
+            .orElseThrow(() -> new RuntimeException("Department not found with id: " + course.getDepartment().getId()));
         
-        course.setFaculty(faculty);
-        
-        // Validate department if provided
-        if (course.getDepartment() != null) {
-            Department department = departmentRepository.findById(course.getDepartment().getId())
-                .orElseThrow(() -> new RuntimeException("Department not found with id: " + course.getDepartment().getId()));
-            course.setDepartment(department);
-        }
+        course.setDepartment(department);
         
         if (courseRepository.existsByCode(course.getCode())) {
             throw new RuntimeException("Course with code " + course.getCode() + " already exists");
@@ -57,14 +49,6 @@ public class CourseService {
         
         Course existingCourse = courseRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
-        
-        // Validate faculty if changed
-        if (course.getFaculty() != null && 
-            !existingCourse.getFaculty().getId().equals(course.getFaculty().getId())) {
-            Faculty faculty = facultyRepository.findById(course.getFaculty().getId())
-                .orElseThrow(() -> new RuntimeException("Faculty not found with id: " + course.getFaculty().getId()));
-            existingCourse.setFaculty(faculty);
-        }
         
         // Validate department if changed
         if (course.getDepartment() != null && 
@@ -90,11 +74,7 @@ public class CourseService {
         existingCourse.setCredits(course.getCredits());
         existingCourse.setTheoryHours(course.getTheoryHours());
         existingCourse.setPracticeHours(course.getPracticeHours());
-        existingCourse.setSelfStudyHours(course.getSelfStudyHours());
-        existingCourse.setPrerequisites(course.getPrerequisites());
-        existingCourse.setCorequisites(course.getCorequisites());
-        existingCourse.setIsElective(course.getIsElective());
-        existingCourse.setMaxStudents(course.getMaxStudents());
+        existingCourse.setCourseType(course.getCourseType());
         existingCourse.setIsActive(course.getIsActive());
         
         Course updatedCourse = courseRepository.save(existingCourse);
@@ -128,11 +108,6 @@ public class CourseService {
     }
     
     @Transactional(readOnly = true)
-    public List<Course> getCoursesByFacultyId(Long facultyId) {
-        return courseRepository.findByFacultyId(facultyId);
-    }
-    
-    @Transactional(readOnly = true)
     public List<Course> getCoursesByDepartmentId(Long departmentId) {
         return courseRepository.findByDepartmentId(departmentId);
     }
@@ -143,18 +118,8 @@ public class CourseService {
     }
     
     @Transactional(readOnly = true)
-    public List<Course> getElectiveCourses() {
-        return courseRepository.findByIsElectiveTrue();
-    }
-    
-    @Transactional(readOnly = true)
-    public List<Course> getRequiredCourses() {
-        return courseRepository.findByIsElectiveFalse();
-    }
-    
-    @Transactional(readOnly = true)
-    public List<Course> getActiveCoursesByFacultyId(Long facultyId) {
-        return courseRepository.findByFacultyIdAndIsActiveTrue(facultyId);
+    public List<Course> getActiveCoursesByDepartmentId(Long departmentId) {
+        return courseRepository.findByDepartmentIdAndIsActiveTrue(departmentId);
     }
     
     @Transactional(readOnly = true)
@@ -177,10 +142,6 @@ public class CourseService {
         return courseRepository.findByCreditsBetween(minCredits, maxCredits);
     }
     
-    @Transactional(readOnly = true)
-    public List<Course> getCoursesByPrerequisite(String prerequisiteCode) {
-        return courseRepository.findByPrerequisiteContaining(prerequisiteCode);
-    }
     
     public Course activateCourse(Long id) {
         System.out.println("Activating course with id: " + id);
@@ -207,18 +168,8 @@ public class CourseService {
     }
     
     @Transactional(readOnly = true)
-    public long getCourseCountByFacultyId(Long facultyId) {
-        return courseRepository.countByFacultyId(facultyId);
-    }
-    
-    @Transactional(readOnly = true)
     public long getCourseCountByDepartmentId(Long departmentId) {
         return courseRepository.countByDepartmentId(departmentId);
-    }
-    
-    @Transactional(readOnly = true)
-    public long getActiveCourseCountByFacultyId(Long facultyId) {
-        return courseRepository.countByFacultyIdAndIsActiveTrue(facultyId);
     }
     
     @Transactional(readOnly = true)
@@ -227,12 +178,20 @@ public class CourseService {
     }
     
     @Transactional(readOnly = true)
+    public List<Course> searchCourses(Long facultyId, Integer credits, String keyword, Boolean active) {
+        log.info("Searching courses with facultyId={}, credits={}, keyword={}, active={}", 
+                 facultyId, credits, keyword, active);
+
+        Specification<Course> spec = Specification.where(CourseSpecification.hasFacultyId(facultyId))
+                .and(CourseSpecification.hasCredits(credits))
+                .and(CourseSpecification.searchByKeyword(keyword))
+                .and(CourseSpecification.isActive(active));
+
+        return courseRepository.findAll(spec);
+    }
+
+    @Transactional(readOnly = true)
     public boolean existsByCode(String code) {
         return courseRepository.existsByCode(code);
-    }
-    
-    @Transactional(readOnly = true)
-    public boolean existsByCodeAndFacultyId(String code, Long facultyId) {
-        return courseRepository.existsByCodeAndFacultyId(code, facultyId);
     }
 }

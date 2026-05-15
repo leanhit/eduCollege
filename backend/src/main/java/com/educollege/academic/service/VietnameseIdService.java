@@ -3,15 +3,15 @@ package com.educollege.academic.service;
 import com.educollege.academic.model.Faculty;
 import com.educollege.academic.model.Department;
 import com.educollege.academic.model.ClassGroup;
+import com.educollege.academic.model.Sequence;
 import com.educollege.academic.repository.FacultyRepository;
 import com.educollege.academic.repository.DepartmentRepository;
 import com.educollege.academic.repository.ClassGroupRepository;
+import com.educollege.academic.repository.SequenceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Vietnamese ID Service
@@ -26,10 +26,7 @@ public class VietnameseIdService {
     private final FacultyRepository facultyRepository;
     private final DepartmentRepository departmentRepository;
     private final ClassGroupRepository classGroupRepository;
-    
-    // In-memory sequence counters (in production, use database)
-    private final AtomicInteger studentSequence = new AtomicInteger(1);
-    private final AtomicInteger teacherSequence = new AtomicInteger(1);
+    private final SequenceRepository sequenceRepository;
     
     /**
      * Generate Vietnamese Student ID
@@ -66,21 +63,24 @@ public class VietnameseIdService {
     
     /**
      * Validate Vietnamese Student ID format
-     * Pattern: ^SV[0-9]{2}[A-Z]{3}[0-9]{5}$
+     * Patterns supported: 
+     * - SV + YY (2) + FACULTY (3-4) + SEQUENCE (5)
+     * - Example: SV24CNTT00101 (13 chars), SV24TOA00101 (12 chars)
      */
     public boolean isValidStudentId(String studentId) {
-        if (studentId == null || studentId.length() != 10) {
+        if (studentId == null || studentId.length() < 12 || studentId.length() > 13) {
             return false;
         }
-        return studentId.matches("^SV[0-9]{2}[A-Z]{3}[0-9]{5}$");
+        return studentId.matches("^SV[0-9]{2}[A-Z]{3,4}[0-9]{5}$");
     }
     
     /**
      * Validate Vietnamese Teacher ID format
-     * Pattern: ^GV[A-Z]{4}[0-9]{4}$
+     * Pattern: GV + DEPARTMENT (4) + SEQUENCE (4)
+     * Example: GVCNPM0001 (10 chars)
      */
     public boolean isValidTeacherId(String teacherId) {
-        if (teacherId == null || teacherId.length() != 8) {
+        if (teacherId == null || teacherId.length() != 10) {
             return false;
         }
         return teacherId.matches("^GV[A-Z]{4}[0-9]{4}$");
@@ -95,8 +95,9 @@ public class VietnameseIdService {
         }
         
         String yearStr = studentId.substring(2, 4);
-        String facultyCode = studentId.substring(4, 7);
-        String sequenceStr = studentId.substring(7, 12);
+        int facultyCodeEnd = studentId.length() - 5;
+        String facultyCode = studentId.substring(4, facultyCodeEnd);
+        String sequenceStr = studentId.substring(facultyCodeEnd);
         
         int year = 2000 + Integer.parseInt(yearStr);
         int sequence = Integer.parseInt(sequenceStr);
@@ -131,18 +132,53 @@ public class VietnameseIdService {
      * Get next student sequence for faculty and class
      */
     private int getNextStudentSequence(Faculty faculty, ClassGroup classGroup) {
-        // In production, this should query database for the next sequence
-        // For now, use in-memory counter
-        return studentSequence.getAndIncrement();
+        String sequenceKey = String.format("STUDENT_%s_%s_%d", 
+            faculty.getCode(), classGroup.getCode(), classGroup.getEnrollmentYear());
+        
+        Sequence sequence = sequenceRepository.findBySequenceKeyAndIsActiveTrue(sequenceKey)
+            .orElseGet(() -> {
+                Sequence newSequence = Sequence.builder()
+                    .sequenceKey(sequenceKey)
+                    .currentValue(0L)
+                    .facultyId(faculty.getId())
+                    .classGroupId(classGroup.getId())
+                    .year(classGroup.getEnrollmentYear())
+                    .sequenceType("STUDENT")
+                    .isActive(true)
+                    .build();
+                return sequenceRepository.save(newSequence);
+            });
+        
+        long nextValue = sequence.getCurrentValue() + 1;
+        sequence.setCurrentValue(nextValue);
+        sequenceRepository.save(sequence);
+        
+        return (int) nextValue;
     }
     
     /**
      * Get next teacher sequence for department
      */
     private int getNextTeacherSequence(Department department) {
-        // In production, this should query database for the next sequence
-        // For now, use in-memory counter
-        return teacherSequence.getAndIncrement();
+        String sequenceKey = String.format("TEACHER_%s", department.getCode());
+        
+        Sequence sequence = sequenceRepository.findBySequenceKeyAndIsActiveTrue(sequenceKey)
+            .orElseGet(() -> {
+                Sequence newSequence = Sequence.builder()
+                    .sequenceKey(sequenceKey)
+                    .currentValue(0L)
+                    .departmentId(department.getId())
+                    .sequenceType("TEACHER")
+                    .isActive(true)
+                    .build();
+                return sequenceRepository.save(newSequence);
+            });
+        
+        long nextValue = sequence.getCurrentValue() + 1;
+        sequence.setCurrentValue(nextValue);
+        sequenceRepository.save(sequence);
+        
+        return (int) nextValue;
     }
     
     /**

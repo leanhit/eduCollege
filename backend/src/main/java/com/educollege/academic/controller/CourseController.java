@@ -56,12 +56,6 @@ public class CourseController {
         return ResponseEntity.ok(courses);
     }
     
-    @GetMapping("/faculty/{facultyId}")
-    public ResponseEntity<List<Course>> getCoursesByFacultyId(@PathVariable Long facultyId) {
-        List<Course> courses = courseService.getCoursesByFacultyId(facultyId);
-        return ResponseEntity.ok(courses);
-    }
-    
     @GetMapping("/department/{departmentId}")
     public ResponseEntity<List<Course>> getCoursesByDepartmentId(@PathVariable Long departmentId) {
         List<Course> courses = courseService.getCoursesByDepartmentId(departmentId);
@@ -74,27 +68,19 @@ public class CourseController {
         return ResponseEntity.ok(courses);
     }
     
-    @GetMapping("/elective")
-    public ResponseEntity<List<Course>> getElectiveCourses() {
-        List<Course> courses = courseService.getElectiveCourses();
-        return ResponseEntity.ok(courses);
-    }
-    
-    @GetMapping("/required")
-    public ResponseEntity<List<Course>> getRequiredCourses() {
-        List<Course> courses = courseService.getRequiredCourses();
-        return ResponseEntity.ok(courses);
-    }
-    
-    @GetMapping("/faculty/{facultyId}/active")
-    public ResponseEntity<List<Course>> getActiveCoursesByFacultyId(@PathVariable Long facultyId) {
-        List<Course> courses = courseService.getActiveCoursesByFacultyId(facultyId);
+    @GetMapping("/department/{departmentId}/active")
+    public ResponseEntity<List<Course>> getActiveCoursesByDepartmentId(@PathVariable Long departmentId) {
+        List<Course> courses = courseService.getActiveCoursesByDepartmentId(departmentId);
         return ResponseEntity.ok(courses);
     }
     
     @GetMapping("/search")
-    public ResponseEntity<List<Course>> searchCourses(@RequestParam String query) {
-        List<Course> courses = courseService.searchCoursesByName(query);
+    public ResponseEntity<List<Course>> searchCourses(
+            @RequestParam(required = false) Long facultyId,
+            @RequestParam(required = false) Integer credits,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean active) {
+        List<Course> courses = courseService.searchCourses(facultyId, credits, keyword, active);
         return ResponseEntity.ok(courses);
     }
     
@@ -116,12 +102,6 @@ public class CourseController {
         return ResponseEntity.ok(courses);
     }
     
-    @GetMapping("/prerequisite/{prerequisiteCode}")
-    public ResponseEntity<List<Course>> getCoursesByPrerequisite(@PathVariable String prerequisiteCode) {
-        List<Course> courses = courseService.getCoursesByPrerequisite(prerequisiteCode);
-        return ResponseEntity.ok(courses);
-    }
-    
     @PutMapping("/{id}/activate")
     public ResponseEntity<Course> activateCourse(@PathVariable Long id) {
         Course activatedCourse = courseService.activateCourse(id);
@@ -134,21 +114,9 @@ public class CourseController {
         return ResponseEntity.ok(deactivatedCourse);
     }
     
-    @GetMapping("/faculty/{facultyId}/count")
-    public ResponseEntity<Long> getCourseCountByFacultyId(@PathVariable Long facultyId) {
-        Long count = courseService.getCourseCountByFacultyId(facultyId);
-        return ResponseEntity.ok(count);
-    }
-    
     @GetMapping("/department/{departmentId}/count")
     public ResponseEntity<Long> getCourseCountByDepartmentId(@PathVariable Long departmentId) {
         Long count = courseService.getCourseCountByDepartmentId(departmentId);
-        return ResponseEntity.ok(count);
-    }
-    
-    @GetMapping("/faculty/{facultyId}/count/active")
-    public ResponseEntity<Long> getActiveCourseCountByFacultyId(@PathVariable Long facultyId) {
-        Long count = courseService.getActiveCourseCountByFacultyId(facultyId);
         return ResponseEntity.ok(count);
     }
     
@@ -161,12 +129,6 @@ public class CourseController {
     @GetMapping("/exists/code/{code}")
     public ResponseEntity<Boolean> existsByCode(@PathVariable String code) {
         Boolean exists = courseService.existsByCode(code);
-        return ResponseEntity.ok(exists);
-    }
-    
-    @GetMapping("/exists/code/{code}/faculty/{facultyId}")
-    public ResponseEntity<Boolean> existsByCodeAndFacultyId(@PathVariable String code, @PathVariable Long facultyId) {
-        Boolean exists = courseService.existsByCodeAndFacultyId(code, facultyId);
         return ResponseEntity.ok(exists);
     }
 }

@@ -115,6 +115,33 @@ class AuthAPI {
       throw error
     }
   }
+  // Vietnamese ID Login
+  async loginByVietnameseId(credentials) {
+    try {
+      const response = await axios.post('/auth/login/vietnamese-id', credentials)
+      return response
+    } catch (error) {
+      throw error
+    }
+  }
+  // Student Registration
+  async registerStudent(userData) {
+    try {
+      const response = await axios.post('/auth/register/student', userData)
+      return response
+    } catch (error) {
+      throw error
+    }
+  }
+  // Teacher Registration
+  async registerTeacher(userData) {
+    try {
+      const response = await axios.post('/auth/register/teacher', userData)
+      return response
+    } catch (error) {
+      throw error
+    }
+  }
 }
 // Create and export singleton instance
 const authAPI = new AuthAPI()

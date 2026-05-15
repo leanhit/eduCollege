@@ -4,6 +4,8 @@ import com.educollege.academic.model.Faculty;
 import com.educollege.academic.repository.FacultyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,7 @@ public class FacultyService {
     
     private final FacultyRepository facultyRepository;
     
+    @CacheEvict(value = "faculties", allEntries = true)
     public Faculty createFaculty(Faculty faculty) {
         System.out.println("Creating faculty: " + faculty.getCode());
         
@@ -33,6 +36,7 @@ public class FacultyService {
         return savedFaculty;
     }
     
+    @CacheEvict(value = "faculties", allEntries = true)
     public Faculty updateFaculty(Long id, Faculty faculty) {
         System.out.println("Updating faculty with id: " + id);
         
@@ -61,6 +65,7 @@ public class FacultyService {
         return updatedFaculty;
     }
     
+    @CacheEvict(value = "faculties", allEntries = true)
     public void deleteFaculty(Long id) {
         System.out.println("Deleting faculty with id: " + id);
         
@@ -72,6 +77,7 @@ public class FacultyService {
     }
     
     @Transactional(readOnly = true)
+    @Cacheable(value = "faculties", key = "#id")
     public Optional<Faculty> getFacultyById(Long id) {
         return facultyRepository.findById(id);
     }
@@ -82,6 +88,7 @@ public class FacultyService {
     }
     
     @Transactional(readOnly = true)
+    @Cacheable(value = "faculties")
     public List<Faculty> getAllFaculties() {
         return facultyRepository.findAll();
     }

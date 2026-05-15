@@ -48,6 +48,15 @@ export const usersApi = {
     changePassword(params) {
         return axios.post('/auth/change-password', params);
     },
+    registerStudent(params) {
+        return axios.post('/auth/register/student', params);
+    },
+    registerTeacher(params) {
+        return axios.post('/auth/register/teacher', params);
+    },
+    loginByVietnameseId(params) {
+        return axios.post('/auth/login/vietnamese-id', params);
+    },
     updateTenantLogo(formData) {
         return axios.put('/v1/tenant/logo', formData, {
             headers: {

@@ -6,6 +6,8 @@ import com.educollege.academic.repository.DepartmentRepository;
 import com.educollege.academic.repository.FacultyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ public class DepartmentService {
     private final DepartmentRepository departmentRepository;
     private final FacultyRepository facultyRepository;
     
+    @CacheEvict(value = "departments", allEntries = true)
     public Department createDepartment(Department department) {
         System.out.println("Creating department: " + department.getCode());
         
@@ -42,6 +45,7 @@ public class DepartmentService {
         return savedDepartment;
     }
     
+    @CacheEvict(value = "departments", allEntries = true)
     public Department updateDepartment(Long id, Department department) {
         System.out.println("Updating department with id: " + id);
         
@@ -79,6 +83,7 @@ public class DepartmentService {
         return updatedDepartment;
     }
     
+    @CacheEvict(value = "departments", allEntries = true)
     public void deleteDepartment(Long id) {
         System.out.println("Deleting department with id: " + id);
         
@@ -90,6 +95,7 @@ public class DepartmentService {
     }
     
     @Transactional(readOnly = true)
+    @Cacheable(value = "departments", key = "#id")
     public Optional<Department> getDepartmentById(Long id) {
         return departmentRepository.findById(id);
     }
@@ -100,6 +106,7 @@ public class DepartmentService {
     }
     
     @Transactional(readOnly = true)
+    @Cacheable(value = "departments")
     public List<Department> getAllDepartments() {
         return departmentRepository.findAll();
     }

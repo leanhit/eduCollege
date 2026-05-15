@@ -51,6 +51,17 @@ public class StudentController {
             .orElse(ResponseEntity.notFound().build());
     }
     
+    @GetMapping("/search")
+    public ResponseEntity<List<Student>> searchStudents(
+            @RequestParam(required = false) Long facultyId,
+            @RequestParam(required = false) Long classGroupId,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String keyword) {
+        List<Student> students = studentService.searchStudents(facultyId, classGroupId, year, status, keyword);
+        return ResponseEntity.ok(students);
+    }
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<Student> getStudentByUserId(@PathVariable Long userId) {
         return studentService.getStudentByUserId(userId)

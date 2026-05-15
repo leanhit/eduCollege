@@ -13,11 +13,39 @@
           {{ $t('auth.login.subtitle') }}
         </p>
       </div>
+      <!-- Login Type Tabs -->
+      <div class="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+        <button
+          type="button"
+          @click="loginType = 'email'"
+          :class="[
+            'flex-1 py-2 px-4 text-center text-sm font-medium',
+            loginType === 'email' 
+              ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400' 
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+          ]"
+        >
+          Email Login
+        </button>
+        <button
+          type="button"
+          @click="loginType = 'vietnameseId'"
+          :class="[
+            'flex-1 py-2 px-4 text-center text-sm font-medium',
+            loginType === 'vietnameseId' 
+              ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400' 
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+          ]"
+        >
+          Vietnamese ID Login
+        </button>
+      </div>
+
       <!-- Login Form -->
       <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
         <div class="space-y-4">
-          <!-- Email -->
-          <div>
+          <!-- Email Login -->
+          <div v-if="loginType === 'email'">
             <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {{ $t('auth.login.email') }}
             </label>
@@ -35,6 +63,29 @@
                 class="appearance-none relative block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.email }"
                 :placeholder="$t('auth.login.emailPlaceholder')"
+              />
+            </div>
+          </div>
+
+          <!-- Vietnamese ID Login -->
+          <div v-if="loginType === 'vietnameseId'">
+            <label for="vietnameseId" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Vietnamese ID (SV/GV/NV...)
+            </label>
+            <div class="mt-1 relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Icon icon="fa6-solid:id-card" class="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                id="vietnameseId"
+                v-model="form.vietnameseId"
+                name="vietnameseId"
+                type="text"
+                autocomplete="username"
+                required
+                class="appearance-none relative block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                :class="{ 'border-red-500 dark:border-red-400': emptyFields && !form.vietnameseId }"
+                placeholder="SV24CNTT00101"
               />
             </div>
           </div>
@@ -152,9 +203,11 @@ export default {
     const { t } = useI18n()
     const form = reactive({
       email: '',
+      vietnameseId: '',
       password: '',
       rememberMe: false
     })
+    const loginType = ref('email')
     const showPassword = ref(false)
     const emptyFields = ref(false)
     const isValidEmail = (email) => {
@@ -166,24 +219,37 @@ export default {
       emptyFields.value = false
       authStore.error = null
       // Validate form
-      if (!form.email || !form.password) {
-        emptyFields.value = true
-        return
+      if (loginType.value === 'email') {
+        if (!form.email || !form.password) {
+          emptyFields.value = true
+          return
+        }
+        if (!isValidEmail(form.email)) {
+          authStore.error = t('auth.login.invalidEmail')
+          return
+        }
+        // Attempt email login
+        const result = await authStore.loginWithCredentials({
+          email: form.email,
+          password: form.password
+        })
+      } else if (loginType.value === 'vietnameseId') {
+        if (!form.vietnameseId || !form.password) {
+          emptyFields.value = true
+          return
+        }
+        // Attempt Vietnamese ID login
+        const result = await authStore.loginWithCredentials({
+          vietnameseId: form.vietnameseId,
+          password: form.password
+        })
       }
-      if (!isValidEmail(form.email)) {
-        authStore.error = $t('auth.login.invalidEmail')
-        return
-      }
-      // Attempt login
-      const result = await authStore.loginWithCredentials({
-        email: form.email,
-        password: form.password
-      })
       // Navigation is handled by authStore.loginWithCredentials()
       // No need to manually navigate here
     }
     return {
       form,
+      loginType,
       showPassword,
       emptyFields,
       authStore,

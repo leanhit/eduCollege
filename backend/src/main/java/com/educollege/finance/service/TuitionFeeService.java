@@ -6,7 +6,9 @@ import com.educollege.finance.enums.PaymentStatus;
 import com.educollege.user.model.Student;
 import com.educollege.user.repository.StudentRepository;
 import com.educollege.academic.model.Semester;
+import com.educollege.academic.repository.EnrollmentRepository;
 import com.educollege.academic.repository.SemesterRepository;
+import com.educollege.academic.model.Enrollment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,10 @@ public class TuitionFeeService {
     private final TuitionFeeRepository tuitionFeeRepository;
     private final StudentRepository studentRepository;
     private final SemesterRepository semesterRepository;
+    private final EnrollmentRepository enrollmentRepository;
+
+    // Unit price per credit (Example: 500,000 VND)
+    private static final BigDecimal PRICE_PER_CREDIT = new BigDecimal("500000");
     
     public TuitionFee createTuitionFee(TuitionFee tuitionFee) {
         System.out.println("Creating tuition fee");
@@ -52,6 +58,44 @@ public class TuitionFeeService {
         TuitionFee savedTuitionFee = tuitionFeeRepository.save(tuitionFee);
         System.out.println("Tuition fee created successfully");
         return savedTuitionFee;
+    }
+
+    /**
+     * Automatically calculate and create/update tuition fee for a student in a semester
+     * based on their current enrollments.
+     */
+    public TuitionFee calculateAndCreateTuition(Long studentId, Long semesterId) {
+        System.out.println("Calculating tuition for student " + studentId + " in semester " + semesterId);
+
+        Student student = studentRepository.findById(studentId)
+            .orElseThrow(() -> new RuntimeException("Student not found"));
+        Semester semester = semesterRepository.findById(semesterId)
+            .orElseThrow(() -> new RuntimeException("Semester not found"));
+
+        // Get all enrollments for this student in this semester
+        List<Enrollment> enrollments = enrollmentRepository.findByStudentIdAndSemesterId(studentId, semesterId);
+        
+        // Sum total credits
+        int totalCredits = enrollments.stream()
+            .map(e -> e.getCourseOffering().getCourse().getCredits())
+            .mapToInt(Integer::intValue)
+            .sum();
+
+        BigDecimal totalAmount = PRICE_PER_CREDIT.multiply(new BigDecimal(totalCredits));
+
+        // Find existing tuition fee or create new
+        TuitionFee tuitionFee = tuitionFeeRepository.findByStudentIdAndSemesterId(studentId, semesterId)
+            .orElse(TuitionFee.builder()
+                .student(student)
+                .semester(semester)
+                .paidAmount(BigDecimal.ZERO)
+                .build());
+
+        tuitionFee.setTotalAmount(totalAmount);
+        tuitionFee.setDueDate(LocalDate.now().plusMonths(1)); // Default due date: 1 month from now
+        updatePaymentStatus(tuitionFee);
+
+        return tuitionFeeRepository.save(tuitionFee);
     }
     
     public TuitionFee updateTuitionFee(Long id, TuitionFee tuitionFee) {

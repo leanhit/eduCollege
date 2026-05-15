@@ -1,4 +1,4 @@
-# Alertmanager Configuration for eduCollege University System
+# Alertmanager Configuration for EduCollege University System
 global:
   smtp_smarthost: 'smtp.gmail.com:587'
   smtp_from: 'alerts@truyenthongviet.vn'
@@ -42,7 +42,7 @@ receivers:
   - name: 'critical-alerts'
     email_configs:
       - to: 'admin@truyenthongviet.vn,devops@truyenthongviet.vn'
-        subject: '[CRITICAL] {{ .GroupLabels.alertname }} - Chatbot SaaS v2.1'
+        subject: '[CRITICAL] {{ .GroupLabels.alertname }} - EduCollege'
         body: |
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
@@ -65,7 +65,7 @@ receivers:
   - name: 'warning-alerts'
     email_configs:
       - to: 'devops@truyenthongviet.vn'
-        subject: '[WARNING] {{ .GroupLabels.alertname }} - Chatbot SaaS v2.1'
+        subject: '[WARNING] {{ .GroupLabels.alertname }} - EduCollege'
         body: |
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
@@ -77,7 +77,7 @@ receivers:
   - name: 'business-alerts'
     email_configs:
       - to: 'business@truyenthongviet.vn,product@truyenthongviet.vn'
-        subject: '[INFO] {{ .GroupLabels.alertname }} - Chatbot SaaS v2.1'
+        subject: '[INFO] {{ .GroupLabels.alertname }} - EduCollege'
         body: |
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}

@@ -1,5 +1,6 @@
 package com.educollege.academic.model;
 
+import com.educollege.core.enums.CourseType;
 import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -24,7 +25,7 @@ public class Course {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(unique = true, nullable = false, length = 30)
+    @Column(unique = true, nullable = false, length = 20)
     private String code; // "TIN101", "TIN102"
     
     @Column(nullable = false, length = 200)
@@ -36,40 +37,25 @@ public class Course {
     @Column(name = "english_name", length = 200)
     private String englishName; // "C Programming Fundamentals"
     
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
-    
-    @Column(nullable = false)
-    private Integer credits; // Số tín chỉ
-    
-    @Column(name = "theory_hours")
-    private Integer theoryHours; // Số giờ lý thuyết
-    
-    @Column(name = "practice_hours")
-    private Integer practiceHours; // Số giờ thực hành
-    
-    @Column(name = "self_study_hours")
-    private Integer selfStudyHours; // Số giờ tự học
-    
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "faculty_id", nullable = false)
-    private Faculty faculty;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "department_id")
+    @JoinColumn(name = "department_id", nullable = false)
     private Department department;
     
-    @Column(name = "prerequisites", columnDefinition = "TEXT")
-    private String prerequisites; // Mã môn học tiên quyết
+    @Column(nullable = false)
+    private Integer credits;
     
-    @Column(name = "corequisites", columnDefinition = "TEXT")
-    private String corequisites; // Mã môn học song hành
+    @Column(name = "theory_hours")
+    private Integer theoryHours;
     
-    @Column(name = "is_elective", nullable = false)
-    private Boolean isElective; // Môn tự chọn
+    @Column(name = "practice_hours")
+    private Integer practiceHours;
     
-    @Column(name = "max_students")
-    private Integer maxStudents; // Số sinh viên tối đa
+    @Enumerated(EnumType.STRING)
+    @Column(name = "course_type", nullable = false)
+    private CourseType courseType; // REQUIRED, ELECTIVE, OPTIONAL
+    
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
     
     @Builder.Default
     @Column(name = "is_active", nullable = false)

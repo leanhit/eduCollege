@@ -106,3 +106,93 @@ spring:
     bucket: ${MINIO_BUCKET:educollege-files}
     region: us-east-1
     console-url: ${MINIO_CONSOLE_URL:http://localhost:9090}
+
+# eduCollege Configuration
+educollege:
+  # Vietnamese ID Configuration
+  vietnamese-id:
+    student:
+      prefix: SV
+      year-format: YY
+      faculty-code-length: 3
+      sequence-length: 5
+    teacher:
+      prefix: GV
+      department-code-length: 4
+      sequence-length: 4
+    staff:
+      prefix: NV
+      faculty-code-length: 3
+      dept-type-length: 2
+      sequence-length: 4
+  
+  # Academic Rules Configuration
+  academic:
+    # GPA Requirements
+    min-gpa: 2.0
+    honors-gpa: 3.6
+    passing-gpa: 2.0
+    
+    # Credit Limits
+    max-failed-credits: 12
+    max-total-credits: 200
+    graduation-credits: 120
+    
+    # Course Load by Academic Level
+    course-load:
+      daihoc: 25
+      caodang: 20
+      thacsi: 18
+      tiensi: 15
+    
+    # Attendance Requirements
+    min-attendance-rate: 75.0
+    
+    # Academic Standing Thresholds
+    academic-standing:
+      good:
+        min-gpa: 2.0
+        max-failed-credits: 6
+      probation:
+        min-gpa: 1.5
+        max-failed-credits: 12
+      suspended:
+        min-gpa: 0.0
+        max-failed-credits: 12
+  
+  # Grading Scale Configuration (Vietnamese 10-point scale)
+  grading:
+    scale: 10-point
+    ranges:
+      A:
+        min: 9.0
+        max: 10.0
+        gpa: 4.0
+      B+:
+        min: 8.5
+        max: 8.9
+        gpa: 3.5
+      B:
+        min: 8.0
+        max: 8.4
+        gpa: 3.0
+      C+:
+        min: 7.0
+        max: 7.9
+        gpa: 2.5
+      C:
+        min: 6.5
+        max: 6.9
+        gpa: 2.0
+      D+:
+        min: 5.5
+        max: 6.4
+        gpa: 1.5
+      D:
+        min: 5.0
+        max: 5.4
+        gpa: 1.0
+      F:
+        min: 0.0
+        max: 4.9
+        gpa: 0.0

@@ -212,9 +212,9 @@ if [[ -n "${BACKUP_NOTIFICATION_EMAIL:-}" ]]; then
     
     # Create notification email
     cat > /tmp/backup_notification.txt << EOF
-Subject: Chatbot SaaS Database Backup Completed - $DATE
+Subject: EduCollege Database Backup Completed - $DATE
 
-Chatbot SaaS v2.1 database backup has been completed successfully.
+EduCollege University System database backup has been completed successfully.
 
 Backup Details:
 - Date: $(date)

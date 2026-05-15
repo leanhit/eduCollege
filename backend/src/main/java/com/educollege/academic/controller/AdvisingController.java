@@ -4,6 +4,7 @@ import com.educollege.academic.model.AdvisingSession;
 import com.educollege.academic.service.AdvisingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -125,5 +126,12 @@ public class AdvisingController {
     public ResponseEntity<AdvisingSession> cancelAdvisingSession(@PathVariable Long id, @RequestParam String reason) {
         AdvisingSession cancelledSession = advisingService.cancelAdvisingSession(id, reason);
         return ResponseEntity.ok(cancelledSession);
+    }
+
+    @PutMapping("/{id}/approve")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<AdvisingSession> approveStudyPlan(@PathVariable Long id, @RequestParam String notes) {
+        AdvisingSession approvedSession = advisingService.approveStudyPlan(id, notes);
+        return ResponseEntity.ok(approvedSession);
     }
 }

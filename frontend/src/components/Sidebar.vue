@@ -11,32 +11,24 @@
         <img
           class="w-8 mt-1 flex-shrink-0"
           src="@/assets/logo/logo.svg"
-          alt="logo windzo"
+          alt="logo educollege"
           style="object-fit: contain; height: 32px; width: 32px;"
         />
         <h2
           class="text-2xl font-normal ml-3 mt-2 text-gray-800 dark:text-gray-200"
           translate="no"
         >
-          Windzo<span class="text-primary">.</span>
+          EduCollege<span class="text-primary">.</span>
         </h2>
       </router-link>
-      <div
-        class="bg-gray-700 absolute mt-3 dark:block hidden rounded-md py-1 px-2 text-xs text-gray-200"
-      >
-        Dark mode
-      </div>
       <button
         class="lg:hidden block dark:text-gray-400 float-right -mt-7"
         @click="$emit('sidebarToggle')"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-          role="img"
           width="25px"
           height="25px"
-          preserveAspectRatio="xMidYMid meet"
           viewBox="0 0 32 32"
         >
           <path
@@ -49,7 +41,7 @@
     <!-- sidebar list -->
     <div class="sidebar-list p-4 mt-4 divide-y dark:divide-gray-700">
       <div class="pb-5">
-        <p class="font-medium text-gray-400 dark:text-gray-400">Menu</p>
+        <p class="font-medium text-gray-400 dark:text-gray-400">Main Menu</p>
         <div class="wrap-item mt-4 dark:text-gray-500">
           <div class="item">
             <router-link
@@ -61,127 +53,92 @@
               <span class="w-full"> Dashboard </span>
             </router-link>
           </div>
+          
+          <!-- Academic Module -->
           <div class="item mt-3">
             <menu-accordion>
               <template v-slot:icon>
-                <Icon icon="mdi:office-building" />
+                <Icon icon="mdi:school" />
               </template>
-              <template v-slot:title> Tenant </template>
+              <template v-slot:title> Academic </template>
               <template v-slot:content>
                 <router-link
-                  to="/tenant/overview"
+                  to="/academic/faculties"
                   @click.stop
                   class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700"
                 >
-                  Overview
+                  Faculties
                 </router-link>
                 <router-link
-                  to="/tenant/members"
+                  to="/academic/departments"
                   @click.stop
                   class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700"
                 >
-                  Member
-                </router-link>
-                <!-- Temporarily hidden
-                <router-link
-                  to="/tenant/settings"
-                  @click.stop
-                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700"
-                >
-                  Settings
-                </router-link>
-                -->
-              </template>
-            </menu-accordion>
-          </div>
-          <div class="item mt-3">
-            <menu-accordion>
-              <template v-slot:icon>
-                <Icon icon="mdi:robot" />
-              </template>
-              <template v-slot:title> Penny Bots </template>
-              <template v-slot:content>
-                <router-link
-                  to="/penny-bots"
-                  @click.stop
-                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700"
-                >
-                  Bots
+                  Departments
                 </router-link>
                 <router-link
-                  to="/penny-connections"
+                  to="/academic/courses"
                   @click.stop
                   class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700"
                 >
-                  Connections
+                  Courses
                 </router-link>
                 <router-link
-                  to="/penny-rules"
+                  to="/academic/enrollments"
                   @click.stop
                   class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700"
                 >
-                  Rules
+                  Enrollments
                 </router-link>
               </template>
             </menu-accordion>
           </div>
+
+          <!-- Finance Module -->
           <div class="item mt-3">
             <menu-accordion>
               <template v-slot:icon>
-                <Icon icon="mdi:message-text" />
+                <Icon icon="mdi:finance" />
               </template>
-              <template v-slot:title> Messages </template>
+              <template v-slot:title> Finance </template>
               <template v-slot:content>
                 <router-link
-                  to="/messages"
+                  to="/finance/tuition"
                   @click.stop
                   class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700"
                 >
-                  Conversations
+                  Tuition Fees
+                </router-link>
+                <router-link
+                  to="/finance/payments"
+                  @click.stop
+                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
+                  Payments
                 </router-link>
               </template>
             </menu-accordion>
           </div>
+
+          <!-- User Module -->
           <div class="item mt-3">
-            <menu-accordion>
-              <template v-slot:icon>
-                <Icon icon="mdi:account-multiple" />
-              </template>
-              <template v-slot:title> {{ $t('customers.title') }} </template>
-              <template v-slot:content>
-                <router-link
-                  to="/customers"
-                  @click.stop
-                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700"
-                >
-                  {{ $t('customers.title') }}
-                </router-link>
-              </template>
-            </menu-accordion>
+            <router-link
+              to="/profile"
+              class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700"
+            >
+              <span class="mr-3 text-xl"><Icon icon="mdi:account" /></span>
+              <span class="w-full"> Profile </span>
+            </router-link>
           </div>
+
           <div class="item mt-3">
-            <menu-accordion>
-              <template v-slot:icon>
-                <Icon icon="mdi:bank-transfer" />
-              </template>
-              <template v-slot:title> Payments </template>
-              <template v-slot:content>
-                <router-link
-                  to="/payment/deposit"
-                  @click.stop
-                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700"
-                >
-                  Deposit
-                </router-link>
-                <router-link
-                  to="/payment/history"
-                  @click.stop
-                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700"
-                >
-                  History
-                </router-link>
-              </template>
-            </menu-accordion>
+            <router-link
+              to="/help"
+              class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700"
+            >
+              <span class="mr-3 text-xl"><Icon icon="mdi:help-circle" /></span>
+              <span class="w-full"> Help Center </span>
+            </router-link>
           </div>
         </div>
       </div>

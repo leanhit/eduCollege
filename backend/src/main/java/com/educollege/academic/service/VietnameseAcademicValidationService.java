@@ -4,6 +4,8 @@ import com.educollege.user.model.Student;
 import com.educollege.academic.model.Semester;
 import com.educollege.user.repository.StudentRepository;
 import com.educollege.academic.repository.SemesterRepository;
+import com.educollege.academic.repository.EnrollmentRepository;
+import com.educollege.core.enums.EnrollmentStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ public class VietnameseAcademicValidationService {
     
     private final StudentRepository studentRepository;
     private final SemesterRepository semesterRepository;
+    private final EnrollmentRepository enrollmentRepository;
     private final VietnameseIdService vietnameseIdService;
     
     /**
@@ -264,27 +267,71 @@ public class VietnameseAcademicValidationService {
      * Get current credits for student in semester
      */
     private int getCurrentCredits(Student student, Semester semester) {
-        // In production, this would query enrollments for the semester
-        // For now, return a placeholder value
-        return 15;
+        return enrollmentRepository.findByStudentIdAndSemesterId(student.getId(), semester.getId())
+                .stream()
+                .mapToInt(e -> e.getCourseOffering().getCourse().getCredits())
+                .sum();
     }
     
     /**
      * Check if student has completed a course
      */
     private boolean hasCompletedCourse(Student student, String courseCode) {
-        // In production, this would check student's transcript
-        // For now, return false for demonstration
-        return false;
+        return enrollmentRepository.findByStudentId(student.getId())
+                .stream()
+                .anyMatch(e -> e.getCourseOffering().getCourse().getCode().equals(courseCode) 
+                          && e.getStatus() == EnrollmentStatus.COMPLETED);
     }
     
     /**
      * Check for schedule conflict
+     * Logic: Compares "T2(1-3),T4(7-9)" with current schedules
      */
     private boolean hasScheduleConflict(Student student, String newCourseSchedule) {
-        // In production, this would check against student's current enrollments
-        // For now, return false for demonstration
+        if (newCourseSchedule == null || newCourseSchedule.isEmpty()) return false;
+
+        List<String> currentSchedules = enrollmentRepository.findByStudentIdAndStatus(student.getId(), EnrollmentStatus.ENROLLED)
+                .stream()
+                .map(e -> e.getCourseOffering().getSchedule())
+                .filter(s -> s != null && !s.isEmpty())
+                .toList();
+
+        for (String existingSchedule : currentSchedules) {
+            if (schedulesOverlap(existingSchedule, newCourseSchedule)) {
+                return true;
+            }
+        }
         return false;
+    }
+
+    private boolean schedulesOverlap(String s1, String s2) {
+        // Simplified overlap logic for common Vietnamese format: T2(1-3)
+        // In a real system, this would be a sophisticated parser
+        String[] parts1 = s1.split(",");
+        String[] parts2 = s2.split(",");
+        for (String p1 : parts1) {
+            for (String p2 : parts2) {
+                if (p1.trim().substring(0, 2).equals(p2.trim().substring(0, 2))) { // Same day
+                    // Check period overlap if same day
+                    if (periodsOverlap(p1, p2)) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean periodsOverlap(String p1, String p2) {
+        try {
+            // Extract (1-3) -> start 1, end 3
+            int start1 = Integer.parseInt(p1.substring(p1.indexOf("(")+1, p1.indexOf("-")));
+            int end1 = Integer.parseInt(p1.substring(p1.indexOf("-")+1, p1.indexOf(")")));
+            int start2 = Integer.parseInt(p2.substring(p2.indexOf("(")+1, p2.indexOf("-")));
+            int end2 = Integer.parseInt(p2.substring(p2.indexOf("-")+1, p2.indexOf(")")));
+            
+            return Math.max(start1, start2) <= Math.min(end1, end2);
+        } catch (Exception e) {
+            return false;
+        }
     }
     
     /**
